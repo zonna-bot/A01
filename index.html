@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>古風 AI 提示詞產生器（女生／男生）</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: #F5F1ED;
+            color: #5C5C5C;
+            padding: 16px;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 12px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 16px;
+            background: linear-gradient(135deg, #F5F1ED 0%, #EAE0D3 100%);
+            border-radius: 8px;
+            border: 2px solid #C9A961;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #5C5C5C;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #8B8B8B;
+        }
+
+        .content-area {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            flex: 0 0 55%;
+            background-color: #FDFBF8;
+            border-radius: 8px;
+            border: 2px solid #C9A961;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .right-panel {
+            flex: 0 0 45%;
+            background-color: #FDFBF8;
+            border-radius: 8px;
+            border: 2px solid #C9A961;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .section-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #8B8B8B;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #D4C5E2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .selected-display {
+            font-size: 16px;
+            font-weight: 700;
+            color: #C9A961;
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .opt-btn {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #E8DCC8;
+            border: 2px solid #C9A961;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #5C5C5C;
+            font-family: 'Noto Serif TC', serif;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .opt-btn:hover {
+            background-color: #D4C5E2;
+            transform: translateY(-2px);
+        }
+
+        .opt-btn.selected {
+            background-color: #C9A961;
+            color: #FDFBF8;
+            box-shadow: 0 0 0 2px rgba(201, 169, 97, 0.3);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #FEFDFB;
+            border: 1px solid #E8DCC8;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-row:hover {
+            background-color: #F9F5F0;
+            border-color: #C9A961;
+        }
+
+        .checkbox-row.checked {
+            background-color: #EBE0CF;
+            border-color: #C9A961;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: #C9A961;
+        }
+
+        .checkbox-row label {
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #5C5C5C;
+            flex: 1;
+        }
+
+        .section-box {
+            border: 2px solid #D4C5E2;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-box-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #5C5C5C;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #C9A961;
+            margin-bottom: 4px;
+        }
+
+        .upload-area {
+            border: 2px dashed #C9A961;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #FEFDFB;
+        }
+
+        .upload-area:hover {
+            background-color: #F9F5F0;
+            border-color: #D4A574;
+        }
+
+        .upload-area.active {
+            background-color: #EBE0CF;
+            border-color: #C9A961;
+        }
+
+        #uploadInput {
+            display: none;
+        }
+
+        .upload-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5C5C5C;
+            margin-bottom: 4px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: #8B8B8B;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 100px;
+            margin-top: 8px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .right-panel h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #5C5C5C;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #C9A961;
+        }
+
+        #promptOutput {
+            font-size: 13px;
+            line-height: 1.6;
+            background-color: #FEFDFB;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #C9A961;
+            color: #5C5C5C;
+            white-space: pre-wrap;
+            word-break: break-word;
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Noto Serif TC', serif;
+            flex: 1;
+        }
+
+        .btn-primary {
+            background-color: #C9A961;
+            color: #FDFBF8;
+        }
+
+        .btn-primary:hover {
+            background-color: #B8904F;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: #E8DCC8;
+            color: #5C5C5C;
+        }
+
+        .btn-secondary:hover {
+            background-color: #D4C5E2;
+        }
+
+        .copy-feedback {
+            display: none;
+            font-size: 13px;
+            font-weight: 600;
+            color: #C9A961;
+            padding: 8px;
+            background-color: #F9F5F0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .gender-switch {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .gender-btn {
+            padding: 10px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: 'Noto Serif TC', serif;
+            color: #5C5C5C;
+            background-color: #FDFBF8;
+            border: 2px solid #C9A961;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 44px;
+        }
+
+        .gender-btn.active {
+            background-color: #C9A961;
+            color: #FDFBF8;
+        }
+
+        .gender-btn:active {
+            transform: scale(0.97);
+        }
+
+        @media (max-width: 1024px) {
+            html, body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            body {
+                padding-bottom: 40px;
+            }
+
+            .main-wrapper {
+                height: auto;
+            }
+
+            .content-area {
+                flex-direction: column;
+                flex: none;
+                overflow: visible;
+            }
+
+            .left-panel, .right-panel {
+                flex: none;
+                width: 100%;
+                overflow: visible;
+            }
+
+            #promptOutput {
+                flex: none;
+                min-height: 160px;
+                max-height: none;
+                overflow-y: visible;
+            }
+
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div class="header">
+            <h1>🎭 古風 AI 提示詞產生器</h1>
+            <p>上傳照片，選擇風格，一鍵生成提示詞</p>
+            <div class="gender-switch">
+                <button type="button" class="gender-btn active" data-gender="female">👩 女生版</button>
+                <button type="button" class="gender-btn" data-gender="male">👨 男生版</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="left-panel">
+                <!-- 人物類 -->
+                <div class="section-box">
+                    <div class="section-box-title">👤 人物風格</div>
+                    
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>🎨 圖片風格</span>
+                            <span class="selected-display" id="styleSelected"></span>
+                        </div>
+                        <div class="button-row" id="styleGrid"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>👑 皇室貴族</span>
+                            <span class="selected-display" id="costumeRoyalSelected"></span>
+                        </div>
+                        <div class="button-row" id="costumeGridRoyal"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>✨ 仙俠魔幻</span>
+                            <span class="selected-display" id="costumeFairySelected"></span>
+                        </div>
+                        <div class="button-row" id="costumeGridFairy"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>🌸 江南詩意</span>
+                            <span class="selected-display" id="costumeJiangnanSelected"></span>
+                        </div>
+                        <div class="button-row" id="costumeGridJiangnan"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>🌙 神話傳說</span>
+                            <span class="selected-display" id="costumeMythSelected"></span>
+                        </div>
+                        <div class="button-row" id="costumeGridMyth"></div>
+                    </div>
+                </div>
+
+                <!-- 背景類 -->
+                <div class="section-box">
+                    <div class="section-box-title">🎭 背景與光影</div>
+                    
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>🏛️ 皇宮華殿</span>
+                            <span class="selected-display" id="scenePalaceSelected"></span>
+                        </div>
+                        <div class="button-row" id="sceneGridPalace"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>🌲 江南水鄉</span>
+                            <span class="selected-display" id="sceneJiangnanSelected"></span>
+                        </div>
+                        <div class="button-row" id="sceneGridJiangnan"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>☁️ 仙境秘境</span>
+                            <span class="selected-display" id="sceneFairySelected"></span>
+                        </div>
+                        <div class="button-row" id="sceneGridFairy"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>⚔️ 武俠江湖</span>
+                            <span class="selected-display" id="sceneMartialSelected"></span>
+                        </div>
+                        <div class="button-row" id="sceneGridMartial"></div>
+                    </div>
+
+                    <div class="section-group">
+                        <div class="section-label">
+                            <span>💫 光影效果</span>
+                            <span class="selected-display" id="lightingSelected"></span>
+                        </div>
+                        <div class="button-row" id="lightingButtons"></div>
+                    </div>
+                </div>
+
+                <!-- 細節增強 -->
+                <div class="section-group">
+                    <div class="section-label">✨ 細節增強</div>
+                    <div class="button-row" id="detailsGroup"></div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h3>🎯 生成的提示詞</h3>
+                <div id="promptOutput">請先選擇左邊的風格與配置，然後按「生成」按鈕</div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="generateBtn">生成</button>
+                    <button class="btn btn-secondary" id="copyBtn">複製</button>
+                </div>
+                <div class="copy-feedback" id="copyFeedback">✓ 已複製！</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const styles_f = [
+            { name: 'Q版3D', prompt: 'cute 3D chibi figurine style, adorable proportions, PVC toy aesthetic, big sparkling eyes, soft pastel colors, smooth glossy surface, playful expression, miniature scale, delicate details' },
+            { name: '寫實電影', prompt: 'cinematic ultra realistic portrait, 8K resolution, highly detailed fabric texture, professional photography lighting, sharp focus, volumetric lighting, photorealistic skin, movie poster quality' },
+            { name: '日式手繪', prompt: 'beautiful hand-drawn illustration style, soft watercolor washes, delicate linework, Japanese anime aesthetic, expressive eyes, flowing hair, graceful pose, warm color palette' },
+            { name: '水彩', prompt: 'elegant watercolor painting style, soft flowing brushstrokes, transparent luminous colors, artistic composition, dreamy atmosphere, delicate details, wet pigment effects, artistic gallery quality' },
+            { name: '國風插畫', prompt: 'classical Chinese illustration style, traditional brush painting technique, elegant ink lines, soft color wash, poetic composition, cultural heritage aesthetic, traditional Chinese painting elements' },
+            { name: '水墨', prompt: 'traditional Chinese ink wash painting, black and white ink aesthetic, minimalist composition, flowing brush strokes, ethereal misty effects, Zen Buddhist influenced, ancient scroll painting style' }
+        ];
+
+        const costumes_f = {
+            royal: [
+                { name: '盛唐皇后', desc: '鳳冠霞帔、金線刺繡、牡丹紋樣、流蘇搖曳、珠翠璀璨、十層薄紗、皇家典雅、拖尾長裙、腰間玉佩、絲綢閃耀、奢華貴氣、金色暗紋、層疊華貴' },
+                { name: '宋代貴婦', desc: '高髻雲鬟、玲瓏簪釵、絲綢披帛、繡花長裙、淡雅色彩、精緻刺繡、典雅氣質、腰帶垂墜、優雅線條、雍容華貴、詩書氣息、瑞雪花紋、婉約風韻' },
+                { name: '明代皇后', desc: '鳳冠華麗、彩繪金飾、重錦衣著、流蘇繁複、珍珠滿綴、雍容華貴、層層華服、拖尾莊重、皇家威儀、金銀絲繡、五彩錦緞、精工細作、氣勢非凡' },
+                { name: '清宮格格', desc: '旗裝典雅、馬甲束腰、繡花精巧、珍珠頭飾、翠鳳翎羽、華貴配飾、瓷白膚色、紅唇貴氣、錦繡衣著、層層細節、宮廷風韻、妝容精緻、嫻靜貴氣' },
+                { name: '神女仙子', desc: '飄飄然仙氣、透明紗衣、流光華彩、羽衣霓裳、頭頂月輪、瓔珞垂落、腳踏雲霞、飄然若思、舞動衣袂、光暈環繞、超然氣質、仙境既視感、靈動優雅' }
+            ],
+            fairy: [
+                { name: '白衣仙尊', desc: '潔白如雪衣著、寬鬆衣袖、飄然然衣角、束腰金線、超然氣質、冷艷高貴、雲仙既視感、白色長飄、冰雪肌膚、眼神深邃、獨立優雅、仙氣十足、通靈感受' },
+                { name: '青衣仙子', desc: '青色繡衣、蒼翠色調、仙氣飄飄、衣角飛揚、腰間玉佩、飾品精緻、溫柔柔和、自然和諧、長飄衣袖、飄飄欲仙、優雅從容、靈動氣質、翠竹般清秀' },
+                { name: '紅衣俠女', desc: '火紅衣衫、張揚氣勢、英武氣質、腰間佩劍、飄逸長髮、瀟灑姿態、紅色披風、炫目耀眼、自信光芒、俠氣十足、鮮豔色彩、英姿颯爽、熱血沸騰' },
+                { name: '月宮仙女', desc: '銀白輕紗、月光既視感、冷色調華麗、首飾晶瑩、頭上月牙、飄然絕塵、高潔氣質、清冷優雅、廣袖飛揚、瓔珞垂落、朦朧神秘、冰肌玉骨、令人著迷' },
+                { name: '狐仙', desc: '狐尾飄飄、妖豔氣質、獠牙若隱、大眼迷人、華麗衣著、金色光暈、神秘魅惑、妖嬈身姿、紅色與金色、勾魂眼神、靈動而危險、妖異美麗、難以抗拒' },
+                { name: '桃花仙女', desc: '桃花裙裾、粉色衣著、桃花髮飾、飄落花瓣、溫柔亮麗、清新氣質、嬌媚神情、桃花眼、嫩白肌膚、柔軟衣料、春意盎然、甜美可人、花海既視感' }
+            ],
+            jiangnan: [
+                { name: '江南才女', desc: '儒雅淡墨衣著、書卷氣十足、精緻髮髻、溫柔眼神、修長身形、優雅舉止、素色衣著、清新脫俗、文化修養、恬靜氣質、詩書氣息、素描般簡約、清水芙蓉' },
+                { name: '荷花少女', desc: '青色衣著、荷塘既視感、清涼舒適、白蓮髮飾、溫柔膚色、青絲飄逸、清新自然、柔弱可人、水面倒影、荷花紋樣、夏日既視感、清純無邪、宛若仙子' },
+                { name: '茶樓女子', desc: '杏色絹衣、優雅綴飾、髮中茶香、柔和氣質、溫暖色調、袖口邊飾、適度露肩、溫柔笑容、茶館既視感、江南風韻、悠閒雍容、古樸典雅、靜水深流' },
+                { name: '綢緞千金', desc: '華麗綢衣、暗色錦緞、金線滾邊、珍珠搭配、昂貴質感、層層華美、優雅線條、富貴典雅、家族榮耀、尊貴氣場、精緻妝容、華麗配飾、貴不可言' },
+                { name: '簪花小姐', desc: '簪子華麗、頭戴鮮花、衣著鮮豔、花朵點綴、少女嬌美、清秀可人、花香既視感、輕盈身形、活力四射、青春洋溢、鮮花烘托、清美無比、楚楚動人' }
+            ],
+            myth: [
+                { name: '女媧', desc: '女媧神聖光環、補天既視感、萬物之母氣質、蛇尾若隱若現、神聖寶石光暈、宇宙既視感、超越凡俗、創世神威、絕世容貌、金色光芒、宏大史詩感、超越時間、永恆神聖' },
+                { name: '嫦娥', desc: '月宮既視感、廣寒宮衣著、月兔環繞、玉兔相伴、月光皎潔、冷艷高貴、三千年孤寂、凝視月色、銀白衣著、瓔珞垂落、朦朧美感、孤獨優雅、月亮女神' },
+                { name: '西王母', desc: '西王母高貴、頭戴金冠、瑞獸相伴、蟠桃園既視感、永恆不老、超然氣質、天界威儀、絕世美貌、華麗衣著、光芒璀璨、掌控天界、傳奇神秘、不可侵犯' },
+                { name: '花神', desc: '花朵環身飛舞、春天既視感、千花盛開、花香氤氳、衣著繽紛、彩色光芒、輕盈身姿、生命活力、草木蒙萬物、溫暖關愛、自然和諧、馥郁撲鼻、春暖花開' },
+                { name: '雪神', desc: '皚皚白雪、冰晶裝扮、凜冽氣場、冬日既視感、冷豔獨特、雪花飛舞、冰肌玉骨、孤傲高冷、潔白衣著、銀色閃爍、寒冬既視感、清冷絕美、冰雪聰慧' }
+            ]
+        };
+
+        const scenes_f = {
+            palace: [
+                { name: '金鑾殿', desc: '宏偉金鑾殿堂、圓頂設計、金色裝飾、九龍椅前、石階級級、紅色柱子、皇家既視感、莊嚴肅穆、宮廷侍衛、龍紋浮雕、皇權象徵、光影交錯、威儀非凡、瑜伽燈照' },
+                { name: '御花園', desc: '皇家花園、錦繡花卉、石徑蜿蜒、假山水景、涼亭古樸、石墩靠背、鮮花怒放、蝴蝶飛舞、清幽雅致、光影斑駁、亭台樓閣、月下既視感、詩情畫意、人工與自然融合' },
+                { name: '長廊', desc: '綿延長廊、雕梁畫棟、紅柱林立、瓦片整齊、浮光掠影、石雕精緻、回廊悠悠、古樸厚重、歷史積澱、霞光透射、燈籠高懸、迴廊深深、視線綿延、藝術宮殿' },
+                { name: '寢宮', desc: '柔和燈光、輕薄絲幔、錦繡布料、金銀雕飾、鳳凰圖案、珠寶飾品、溫暖既視感、私密空間、奢華服侍、香薰撲鼻、月光窗邊、軟綿枕被、幽幽暗香、皇家尊榮' },
+                { name: '宮廷階梯', desc: '雄偉階梯、白玉欄杆、紅地毯鋪陳、石階條紋、莊重氛圍、光影層次、宮廷既視感、權力象徵、絲綢相伴、威儀四射、視角恢弘、上下分明、格局宏大、帝王風範' },
+                { name: '燭火大殿', desc: '萬盞燭火、金光搖曳、影子舞動、火焰跳躍、溫暖既視感、古樸厚重、煙霧繚繞、昏暗神秘、雕像林立、天頂宏偉、光與影的交響、歷史悠久、祭祀莊嚴、神聖肅穆' }
+            ],
+            jiangnan: [
+                { name: '小橋流水', desc: '石橋弧形、清澈溪流、柳樹垂落、流水潺潺、古樸既視感、水面倒影、光影粼粼、岸邊蘆葦、飛鳥掠水、晨霧飄渺、靜謐和諧、詩境既視感、水墨畫風、蒼白如紙' },
+                { name: '荷塘亭台', desc: '荷塘碧綠、亭台高聳、紅蓮盛開、蓮葉青翠、涼亭古樸、欄杆精緻、蜻蜓點水、蛙聲陣陣、荷花香氣、午後既視感、寧靜致遠、光影投影、生機盎然、清涼舒適' },
+                { name: '竹林小徑', desc: '竹林深處、竹葉沙沙、林蔭步道、光影斑駁、竹海既視感、清新竹香、朦朧美感、林間光線、自然寧靜、禪意盎然、古樸清幽、人跡罕至、仙境既視感、心靈寧靜' },
+                { name: '古鎮石街', desc: '石板街道、青石路面、古樸建築、雨後既視感、石牆斑駁、濕漉漉地面、青苔蔓延、老舊感十足、歲月滄桑、人煙稀少、光影深沉、歷史沉積、懷舊既視感、寧靜蒼涼' },
+                { name: '水上人家', desc: '水邊木屋、漁船搖曳、水面平靜、夕陽既視感、燈籠倒影、漣漪擴散、煙火氣息、生活氣息、木質感十足、人聲鼎沸、溫暖既視感、日常既視感、庶民生活、寧靜致遠' },
+                { name: '古寺庭院', desc: '寺廟既視感、香火繚繞、紅墻黃瓦、石燈籠、青苔地面、靜謐氛圍、佛經木魚聲、禪意十足、光影通透、宗教聖地、藝術品質感、古樸厚重、精神寄託、寧靜致遠' },
+                { name: '煙雨江南', desc: '細雨霏霏、煙霧繚繞、朦朧江南、詩意氛圍、遠山若隱、水墨畫既視感、濕潤空氣、清新氣息、柔和光線、悲傷既視感、寧靜致遠、淡雅色調、中國風十足、意境深遠' }
+            ],
+            fairy: [
+                { name: '月宮', desc: '銀白月光、廣寒宮既視感、冷艷高貴、玉兔繪飾、蟾蜍若隱、璃璃宮殿、瑞雪紛飛、星辰點綴、永夜既視感、天界寧靜、超越凡俗、光暈璀璨、瓔珞掛飾、仙境既視感' },
+                { name: '桃花仙境', desc: '滿地桃花、粉紅色彩、花海浪漫、飛花紛揚、花香氤氳、光影溫暖、夢幻既視感、春天既視感、花瓣漫天、小溪潺潺、古樹蔭涼、仙人居住既視感、愛情既視感、夢幻唯美' },
+                { name: '雲海仙山', desc: '雲霧繚繞、高聳山峰、雲海翻騰、仙山既視感、縹緲靈幻、峭壁懸崖、古樹蒼勁、瑞光閃爍、超越現世、天地交界、壯闊既視感、神聖既視感、唯美既視感、靈魂淨化' },
+                { name: '水晶宮殿', desc: '透明水晶、閃爍光芒、寶石點綴、夢幻既視感、冷色調優雅、光線折射、彩虹既視感、科幻與古韻融合、冰晶感十足、未來既視感、超越想象、華麗夢幻、令人著迷、仙境既視感' },
+                { name: '瑞草仙道', desc: '仙草繁茂、光芒四射、瑞光既視感、仙道蜿蜒、靈氣十足、光線聖潔、淨化感十足、修仙既視感、靈力既視感、心靈淨化、超越凡俗、不可言說、玄幻既視感、唯美絕倫' },
+                { name: '落英飛舞', desc: '花瓣漫天、飛舞旋轉、光影斑駁、浪漫既視感、夢幻既視感、花香環繞、柔和光線、溫暖既視感、愛情既視感、詩意盎然、唯美夢幻、夢境既視感、靈動優雅、令人心醉' }
+            ],
+            martial: [
+                { name: '劍峰懸崖', desc: '陡峭懸崖、劍石林立、險峻既視感、狂風既視感、雲霧繚繞、岩石嶙峋、蒼鷹盤旋、孤獨既視感、戰鬥既視感、武俠既視感、險惡環境、考驗既視感、冒險既視感、刀光劍影' },
+                { name: '古劍墓地', desc: '古劍鑲嵌、石墓沉寂、霧氣彌漫、昏暗既視感、歷史滄桑、亡靈既視感、悲壯既視感、武俠既視感、劍氣威猛、寂寞既視感、月光投影、夜間既視感、蒼涼既視感、歷史厚重' },
+                { name: '武林大會', desc: '人聲鼎沸、擂台高聳、懸旗飄揚、競技既視感、武林既視感、俠客雲集、英雄氣概、光影交錯、熱血既視感、決鬥既視感、緊張刺激、群俠既視感、俠氣十足、武俠經典' },
+                { name: '古戰場', desc: '廢墟蒼涼、血跡斑駁、旗幟破碎、馬蹄印跡、死寂既視感、硝煙既視感、黃昏既視感、悲壯既視感、歷史既視感、英魂既視感、肅殺既視感、蒼涼既視感、尸骨累累、滄海桑田' },
+                { name: '暗夜江湖', desc: '夜間既視感、月光皎潔、人影綽綽、刀光劍影、暗流湧動、謎團既視感、陰謀既視感、武俠既視感、黑暗既視感、危機四伏、懸念十足、緊張既視感、詭異既視感、生死抉擇' },
+                { name: '山寨大廳', desc: '粗獷風格、木製裝飾、火盆熊熊、豪邁既視感、江湖既視感、混亂既視感、英雄聚集、酒肉既視感、粗狂既視感、團結既視感、反叛既視感、自由既視感、草莽氣息、大宋年代' }
+            ]
+        };
+
+        const lighting = [
+            { name: '黃金夕陽', prompt: 'golden hour lighting, warm sunset glow, amber colored light, soft warm illumination, cinematic golden hour, magical hour photography' },
+            { name: '月光', prompt: 'moonlight illumination, cool blue moonlit night, silvery moonbeams, nocturnal lighting, lunar glow, peaceful nighttime, ethereal moon light' },
+            { name: '燈籠夜景', prompt: 'traditional lantern lighting, glowing red lanterns, warm lantern glow, night market ambiance, festival lantern light, traditional Chinese lighting' },
+            { name: '飄雪', prompt: 'falling snowflakes, snow particle effects, winter snowfall, pristine white snow, snowflake bokeh, winter wonderland, snowy atmosphere' },
+            { name: '飄花', prompt: 'falling flower petals, petal rain, blooming flowers floating, romantic petal effects, spring flower cascade, floral particles' },
+            { name: '晨霧', prompt: 'morning mist atmosphere, misty dawn, ethereal fog, translucent mist, hazy sunlight, mystical foggy morning, soft atmospheric mist' }
+        ];
+
+        const details_f = [
+            { name: '金線刺繡', prompt: '精緻的金線刺繡、金色線條工藝、複雜紋樣、皇家刺繡工藝、金色鮮明、細節精巧' },
+            { name: '鳳凰刺繡', prompt: '鳳凰紋樣刺繡、瑞鳥既視感、華麗鳳凰、五彩羽毛、王朝既視感、皇權象徵' },
+            { name: '流蘇頭飾', prompt: '華麗流蘇、珠寶垂落、搖曳生姿、頭飾精緻、寶石既視感、貴氣十足' },
+            { name: '玉佩', prompt: '精雕玉佩、溫潤玉石、翡翠既視感、腰間掛飾、古樸高貴、中國元素' },
+            { name: '披帛飄逸', prompt: '飄逸披帛、薄紗飛揚、絹質感、輕盈若思、舞動既視感、仙氣十足' },
+            { name: '花瓣飛舞', prompt: '花瓣漫天、飛舞旋轉、浪漫既視感、光影斑駁、自然元素、詩意盎然' },
+            { name: '水面倒影', prompt: '完美倒影、水面既視感、鏡面效果、光線反射、水光粼粼、詩意氛圍' },
+            { name: '電影景深', prompt: '電影級景深效果、虛實結合、主體突出、背景虛化、專業構圖、視覺衝擊' },
+            { name: '超高細節', prompt: '超高解析度、細緻紋理、毛髮絲絲入微、布料質感、光影精準、完美細節、大師級工藝' }
+        ];
+
+        const styles_m = [
+            { name: 'Q版3D', prompt: 'cute 3D chibi figurine style, adorable proportions, PVC toy aesthetic, expressive eyes, soft warm colors, smooth glossy surface, playful expression, miniature scale, delicate details' },
+            { name: '寫實電影', prompt: 'cinematic ultra realistic portrait, 8K resolution, highly detailed fabric texture, professional photography lighting, sharp focus, volumetric lighting, photorealistic skin, handsome masculine features, movie poster quality' },
+            { name: '日式手繪', prompt: 'beautiful hand-drawn illustration style, soft watercolor washes, delicate linework, Japanese anime aesthetic, expressive eyes, handsome features, heroic pose, warm color palette' },
+            { name: '水彩', prompt: 'elegant watercolor painting style, soft flowing brushstrokes, transparent luminous colors, artistic composition, dreamy atmosphere, delicate details, wet pigment effects, artistic gallery quality' },
+            { name: '國風插畫', prompt: 'classical Chinese illustration style, traditional brush painting technique, elegant ink lines, soft color wash, poetic composition, cultural heritage aesthetic, traditional Chinese painting elements' },
+            { name: '水墨', prompt: 'traditional Chinese ink wash painting, black and white ink aesthetic, minimalist composition, flowing brush strokes, ethereal misty effects, Zen Buddhist influenced, ancient scroll painting style' }
+        ];
+
+        const costumes_m = {
+            royal: [
+                { name: '盛唐帝王', desc: '赭黃龍袍、金線龍紋刺繡、十二旒冕冠、寬袖大袍、玉帶束腰、腰間玉佩、威嚴霸氣、皇家威儀、絲綢閃耀、金色暗紋、層疊華貴、帝王氣場、氣宇軒昂' },
+                { name: '宋代貴公子', desc: '玉冠束髮、素雅錦袍、寬袖長衫、腰間玉佩、手持摺扇、溫潤如玉、書卷氣質、淡雅色彩、精緻暗紋、儒雅風流、翩翩公子、風度翩翩、從容貴氣' },
+                { name: '明代將軍', desc: '明光鎧甲、金屬肩甲、紅色披風、腰佩長刀、頭戴盔纓、英武挺拔、沙場威儀、鎧甲反光、雄姿英發、戰袍獵獵、氣勢非凡、鐵血豪情、威風凜凜' },
+                { name: '清宮貝勒', desc: '馬褂長袍、旗裝束腰、辮髮垂背、錦繡刺繡、翡翠扳指、腰間荷包、貴氣十足、皇族風範、層層細節、宮廷風韻、少年英氣、尊貴從容、精緻考究' },
+                { name: '錦衣衛', desc: '飛魚服、繡春刀、黑金配色、束腕護臂、腰間令牌、凌厲眼神、冷峻氣質、暗紋精緻、利落身形、神秘威嚴、江湖朝堂、肅殺氣場、英姿颯爽' }
+            ],
+            fairy: [
+                { name: '白衣仙尊', desc: '潔白如雪衣著、寬鬆衣袖、飄然衣角、束腰銀線、超然氣質、清冷高貴、雲仙既視感、白色長髮飄逸、眼神深邃、獨立挺拔、仙氣十足、通靈感受、淡漠出塵' },
+                { name: '青衣劍仙', desc: '青色長袍、蒼翠色調、仙氣飄飄、衣角飛揚、背負長劍、腰間玉佩、飄逸束髮、劍意凜然、瀟灑從容、御劍而行、清秀俊朗、竹般挺拔、靈動氣質' },
+                { name: '紅衣俠客', desc: '火紅衣衫、張揚氣勢、英武氣質、腰間佩劍、高束馬尾、瀟灑姿態、紅色披風、炫目耀眼、自信光芒、俠氣十足、鮮豔色彩、英姿颯爽、熱血沸騰' },
+                { name: '墨衣魔尊', desc: '黑金長袍、暗紋繚繞、魔氣纏身、披散長髮、深紅眼眸、冷峻霸氣、玄色披風、邪魅氣質、孤傲高冷、危險魅力、威壓四方、暗夜既視感、強大神秘' },
+                { name: '道袍修士', desc: '素色道袍、束髮道冠、手持拂塵、仙風道骨、寬袖飄飄、清心寡慾、雲遊四方、符籙腰佩、淡然出塵、鶴髮童顏、修行既視感、超然物外、靈氣環繞' },
+                { name: '狐妖公子', desc: '狐耳狐尾、妖冶俊美、華麗衣著、金色光暈、狹長鳳眼、神秘魅惑、紅色與金色、慵懶姿態、勾魂眼神、靈動而危險、妖異美麗、難以抗拒、邪魅笑意' }
+            ],
+            jiangnan: [
+                { name: '江南才子', desc: '淡墨長衫、書卷氣十足、玉簪束髮、溫柔眼神、修長身形、手持書卷、素色衣著、清新脫俗、文化修養、恬靜氣質、詩書氣息、儒雅俊秀、溫潤如玉' },
+                { name: '撐傘書生', desc: '青色長衫、油紙傘、煙雨既視感、清涼舒適、青絲束髮、清新自然、水面倒影、書箱背負、江南雨巷、青石小路、清朗少年、斯文儒雅、宛若畫中人' },
+                { name: '茶樓公子', desc: '杏色絹衣、優雅綴飾、手持茶盞、柔和氣質、溫暖色調、袖口邊飾、溫柔笑容、茶館既視感、江南風韻、悠閒雍容、古樸典雅、靜水深流、風雅從容' },
+                { name: '綢緞少爺', desc: '華麗綢衣、暗色錦緞、金線滾邊、玉扳指、昂貴質感、層層華美、手持摺扇、富貴典雅、家族榮耀、尊貴氣場、精緻束冠、華麗配飾、貴不可言' },
+                { name: '竹林隱士', desc: '粗麻長袍、竹笠斗篷、手持竹杖、清瘦身形、飄逸鬍鬚、淡泊明志、山林既視感、隱逸氣質、素樸色調、悠然自得、琴劍相伴、閒雲野鶴、超脫塵世' }
+            ],
+            myth: [
+                { name: '伏羲', desc: '伏羲神聖光環、八卦圖騰、天地之始氣質、蛇身若隱若現、神聖寶石光暈、宇宙既視感、超越凡俗、創世神威、威嚴容貌、金色光芒、宏大史詩感、超越時間、永恆神聖' },
+                { name: '二郎神', desc: '額間天眼、銀色戰甲、三尖兩刃刀、哮天犬相伴、英武俊朗、天界戰神、披風獵獵、威風凜凜、金光護體、凌厲目光、傲視群雄、傳奇神秘、氣勢逼人' },
+                { name: '哪吒', desc: '少年英氣、混天綾飄舞、風火輪腳踏、火尖槍在手、蓮花化身、紅色勁裝、烈焰環繞、桀驁不馴、天真與霸氣、光芒璀璨、靈動勇猛、傳奇既視感、熱血少年' },
+                { name: '關聖帝君', desc: '綠袍長髯、青龍偃月刀、丹鳳眼、赤面凜然、忠義氣質、威嚴莊重、頭戴巾冠、神聖光暈、義薄雲天、浩然正氣、不可侵犯、傳奇既視感、氣勢非凡' },
+                { name: '東海龍王', desc: '龍冠龍袍、水波環繞、金色龍鱗、寶珠在手、海浪翻湧、威嚴霸氣、深藍與金色、蝦兵蟹將相伴、水晶宮既視感、掌控四海、神聖威儀、氣場強大、傳奇神秘' }
+            ]
+        };
+
+        const scenes_m = {
+            palace: [
+                { name: '金鑾殿', desc: '宏偉金鑾殿堂、圓頂設計、金色裝飾、九龍椅前、石階級級、紅色柱子、皇家既視感、莊嚴肅穆、宮廷侍衛、龍紋浮雕、皇權象徵、光影交錯、威儀非凡、瑜伽燈照' },
+                { name: '御花園', desc: '皇家花園、錦繡花卉、石徑蜿蜒、假山水景、涼亭古樸、石墩靠背、鮮花怒放、蝴蝶飛舞、清幽雅致、光影斑駁、亭台樓閣、月下既視感、詩情畫意、人工與自然融合' },
+                { name: '長廊', desc: '綿延長廊、雕梁畫棟、紅柱林立、瓦片整齊、浮光掠影、石雕精緻、回廊悠悠、古樸厚重、歷史積澱、霞光透射、燈籠高懸、迴廊深深、視線綿延、藝術宮殿' },
+                { name: '皇家書房', desc: '書架林立、檀木書案、筆墨紙硯、青銅香爐、卷軸高掛、燭光搖曳、窗邊月色、古樸沉靜、墨香撲鼻、屏風水墨、溫暖既視感、文人雅趣、私密空間、帝王沉思' },
+                { name: '宮廷階梯', desc: '雄偉階梯、白玉欄杆、紅地毯鋪陳、石階條紋、莊重氛圍、光影層次、宮廷既視感、權力象徵、絲綢相伴、威儀四射、視角恢弘、上下分明、格局宏大、帝王風範' },
+                { name: '燭火大殿', desc: '萬盞燭火、金光搖曳、影子舞動、火焰跳躍、溫暖既視感、古樸厚重、煙霧繚繞、昏暗神秘、雕像林立、天頂宏偉、光與影的交響、歷史悠久、祭祀莊嚴、神聖肅穆' }
+            ],
+            jiangnan: [
+                { name: '小橋流水', desc: '石橋弧形、清澈溪流、柳樹垂落、流水潺潺、古樸既視感、水面倒影、光影粼粼、岸邊蘆葦、飛鳥掠水、晨霧飄渺、靜謐和諧、詩境既視感、水墨畫風、蒼白如紙' },
+                { name: '荷塘亭台', desc: '荷塘碧綠、亭台高聳、紅蓮盛開、蓮葉青翠、涼亭古樸、欄杆精緻、蜻蜓點水、蛙聲陣陣、荷花香氣、午後既視感、寧靜致遠、光影投影、生機盎然、清涼舒適' },
+                { name: '竹林小徑', desc: '竹林深處、竹葉沙沙、林蔭步道、光影斑駁、竹海既視感、清新竹香、朦朧美感、林間光線、自然寧靜、禪意盎然、古樸清幽、人跡罕至、仙境既視感、心靈寧靜' },
+                { name: '古鎮石街', desc: '石板街道、青石路面、古樸建築、雨後既視感、石牆斑駁、濕漉漉地面、青苔蔓延、老舊感十足、歲月滄桑、人煙稀少、光影深沉、歷史沉積、懷舊既視感、寧靜蒼涼' },
+                { name: '水上人家', desc: '水邊木屋、漁船搖曳、水面平靜、夕陽既視感、燈籠倒影、漣漪擴散、煙火氣息、生活氣息、木質感十足、人聲鼎沸、溫暖既視感、日常既視感、庶民生活、寧靜致遠' },
+                { name: '古寺庭院', desc: '寺廟既視感、香火繚繞、紅墻黃瓦、石燈籠、青苔地面、靜謐氛圍、佛經木魚聲、禪意十足、光影通透、宗教聖地、藝術品質感、古樸厚重、精神寄託、寧靜致遠' },
+                { name: '煙雨江南', desc: '細雨霏霏、煙霧繚繞、朦朧江南、詩意氛圍、遠山若隱、水墨畫既視感、濕潤空氣、清新氣息、柔和光線、悲傷既視感、寧靜致遠、淡雅色調、中國風十足、意境深遠' }
+            ],
+            fairy: [
+                { name: '月宮', desc: '銀白月光、廣寒宮既視感、冷艷高貴、玉兔繪飾、蟾蜍若隱、璃璃宮殿、瑞雪紛飛、星辰點綴、永夜既視感、天界寧靜、超越凡俗、光暈璀璨、瓔珞掛飾、仙境既視感' },
+                { name: '桃花仙境', desc: '滿地桃花、粉紅色彩、花海浪漫、飛花紛揚、花香氤氳、光影溫暖、夢幻既視感、春天既視感、花瓣漫天、小溪潺潺、古樹蔭涼、仙人居住既視感、愛情既視感、夢幻唯美' },
+                { name: '雲海仙山', desc: '雲霧繚繞、高聳山峰、雲海翻騰、仙山既視感、縹緲靈幻、峭壁懸崖、古樹蒼勁、瑞光閃爍、超越現世、天地交界、壯闊既視感、神聖既視感、唯美既視感、靈魂淨化' },
+                { name: '水晶宮殿', desc: '透明水晶、閃爍光芒、寶石點綴、夢幻既視感、冷色調優雅、光線折射、彩虹既視感、科幻與古韻融合、冰晶感十足、未來既視感、超越想象、華麗夢幻、令人著迷、仙境既視感' },
+                { name: '瑞草仙道', desc: '仙草繁茂、光芒四射、瑞光既視感、仙道蜿蜒、靈氣十足、光線聖潔、淨化感十足、修仙既視感、靈力既視感、心靈淨化、超越凡俗、不可言說、玄幻既視感、唯美絕倫' },
+                { name: '落英飛舞', desc: '花瓣漫天、飛舞旋轉、光影斑駁、浪漫既視感、夢幻既視感、花香環繞、柔和光線、溫暖既視感、愛情既視感、詩意盎然、唯美夢幻、夢境既視感、靈動優雅、令人心醉' }
+            ],
+            martial: [
+                { name: '劍峰懸崖', desc: '陡峭懸崖、劍石林立、險峻既視感、狂風既視感、雲霧繚繞、岩石嶙峋、蒼鷹盤旋、孤獨既視感、戰鬥既視感、武俠既視感、險惡環境、考驗既視感、冒險既視感、刀光劍影' },
+                { name: '古劍墓地', desc: '古劍鑲嵌、石墓沉寂、霧氣彌漫、昏暗既視感、歷史滄桑、亡靈既視感、悲壯既視感、武俠既視感、劍氣威猛、寂寞既視感、月光投影、夜間既視感、蒼涼既視感、歷史厚重' },
+                { name: '武林大會', desc: '人聲鼎沸、擂台高聳、懸旗飄揚、競技既視感、武林既視感、俠客雲集、英雄氣概、光影交錯、熱血既視感、決鬥既視感、緊張刺激、群俠既視感、俠氣十足、武俠經典' },
+                { name: '古戰場', desc: '廢墟蒼涼、血跡斑駁、旗幟破碎、馬蹄印跡、死寂既視感、硝煙既視感、黃昏既視感、悲壯既視感、歷史既視感、英魂既視感、肅殺既視感、蒼涼既視感、尸骨累累、滄海桑田' },
+                { name: '暗夜江湖', desc: '夜間既視感、月光皎潔、人影綽綽、刀光劍影、暗流湧動、謎團既視感、陰謀既視感、武俠既視感、黑暗既視感、危機四伏、懸念十足、緊張既視感、詭異既視感、生死抉擇' },
+                { name: '山寨大廳', desc: '粗獷風格、木製裝飾、火盆熊熊、豪邁既視感、江湖既視感、混亂既視感、英雄聚集、酒肉既視感、粗狂既視感、團結既視感、反叛既視感、自由既視感、草莽氣息、大宋年代' }
+            ]
+        };
+
+                const details_m = [
+            { name: '金線刺繡', prompt: '精緻的金線刺繡、金色線條工藝、複雜紋樣、皇家刺繡工藝、金色鮮明、細節精巧' },
+            { name: '龍紋刺繡', prompt: '龍紋刺繡、五爪金龍、雲紋環繞、王朝既視感、皇權象徵、威嚴霸氣' },
+            { name: '玉冠束髮', prompt: '精雕玉冠、束髮簪子、髮絲整齊、寶石鑲嵌、貴氣十足、古樸高貴' },
+            { name: '玉佩', prompt: '精雕玉佩、溫潤玉石、翡翠既視感、腰間掛飾、古樸高貴、中國元素' },
+            { name: '長劍佩飾', prompt: '腰間長劍、劍鞘雕紋、劍穗飄動、俠客既視感、劍氣凜然、武俠元素' },
+            { name: '披風飄揚', prompt: '飄揚披風、衣袂翻飛、風中獵獵、動感十足、英姿颯爽、氣勢非凡' },
+            { name: '落葉紛飛', prompt: '落葉飄零、風中飛舞、光影斑駁、自然元素、蕭瑟詩意、意境深遠' },
+            { name: '水面倒影', prompt: '完美倒影、水面既視感、鏡面效果、光線反射、水光粼粼、詩意氛圍' },
+            { name: '電影景深', prompt: '電影級景深效果、虛實結合、主體突出、背景虛化、專業構圖、視覺衝擊' },
+            { name: '超高細節', prompt: '超高解析度、細緻紋理、毛髮絲絲入微、布料質感、光影精準、完美細節、大師級工藝' }
+        ];
+
+        
+        let styles, costumes, scenes, details;
+        let currentGender = 'female';
+
+        const intros = {
+            female: '請以我上傳的照片人物作為唯一主角。\n\n完整保留人物五官辨識度、臉型、髮型、眼鏡（若有）、年齡感與氣質。',
+            male: '請以我上傳的照片人物作為唯一主角，人物為男性。\n\n完整保留人物五官辨識度、臉型、髮型、鬍鬚（若有）、眼鏡（若有）、年齡感與氣質，呈現英挺俊朗的男性形象。'
+        };
+
+let selectedStyle = null;
+        let selectedCostume = null;
+        let selectedLighting = null;
+        let selectedScene = null;
+        let selectedDetails = new Set();
+
+        function createStyleButtons() {
+            const grid = document.getElementById('styleGrid');
+            styles.forEach((style) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.textContent = style.name;
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        selectedStyle = null;
+                        document.getElementById('styleSelected').textContent = '';
+                    } else {
+                        document.querySelectorAll('#styleGrid .opt-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        selectedStyle = style;
+                        document.getElementById('styleSelected').textContent = `已選：${style.name}`;
+                    }
+                });
+                grid.appendChild(btn);
+            });
+        }
+
+        function createCostumeButtons() {
+            const categories = [
+                { id: 'royal', data: costumes.royal, displayId: 'costumeRoyalSelected' },
+                { id: 'fairy', data: costumes.fairy, displayId: 'costumeFairySelected' },
+                { id: 'jiangnan', data: costumes.jiangnan, displayId: 'costumeJiangnanSelected' },
+                { id: 'myth', data: costumes.myth, displayId: 'costumeMythSelected' }
+            ];
+
+            categories.forEach(cat => {
+                const gridId = cat.id === 'royal' ? 'costumeGridRoyal' : cat.id === 'fairy' ? 'costumeGridFairy' : cat.id === 'jiangnan' ? 'costumeGridJiangnan' : 'costumeGridMyth';
+                const gridEl = document.getElementById(gridId);
+                
+                cat.data.forEach(costume => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.textContent = costume.name;
+                    btn.addEventListener('click', () => {
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedCostume = null;
+                            document.getElementById(cat.displayId).textContent = '';
+                        } else {
+                            document.querySelectorAll(`#${gridId} .opt-btn`).forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedCostume = costume;
+                            document.getElementById(cat.displayId).textContent = `已選：${costume.name}`;
+                        }
+                    });
+                    gridEl.appendChild(btn);
+                });
+            });
+        }
+
+        function createSceneButtons() {
+            const categories = [
+                { id: 'palace', data: scenes.palace, displayId: 'scenePalaceSelected' },
+                { id: 'jiangnan', data: scenes.jiangnan, displayId: 'sceneJiangnanSelected' },
+                { id: 'fairy', data: scenes.fairy, displayId: 'sceneFairySelected' },
+                { id: 'martial', data: scenes.martial, displayId: 'sceneMartialSelected' }
+            ];
+
+            categories.forEach(cat => {
+                const gridId = cat.id === 'palace' ? 'sceneGridPalace' : cat.id === 'jiangnan' ? 'sceneGridJiangnan' : cat.id === 'fairy' ? 'sceneGridFairy' : 'sceneGridMartial';
+                const gridEl = document.getElementById(gridId);
+                
+                cat.data.forEach(scene => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.textContent = scene.name;
+                    btn.addEventListener('click', () => {
+                        if (btn.classList.contains('selected')) {
+                            btn.classList.remove('selected');
+                            selectedScene = null;
+                            document.getElementById(cat.displayId).textContent = '';
+                        } else {
+                            document.querySelectorAll(`#${gridId} .opt-btn`).forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedScene = scene;
+                            document.getElementById(cat.displayId).textContent = `已選：${scene.name}`;
+                        }
+                    });
+                    gridEl.appendChild(btn);
+                });
+            });
+        }
+
+        function createLightingButtons() {
+            const container = document.getElementById('lightingButtons');
+            lighting.forEach(light => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.textContent = light.name;
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        selectedLighting = null;
+                        document.getElementById('lightingSelected').textContent = '';
+                    } else {
+                        document.querySelectorAll('#lightingButtons .opt-btn.selected').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        selectedLighting = light;
+                        document.getElementById('lightingSelected').textContent = `已選：${light.name}`;
+                    }
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function createDetailsCheckboxes() {
+            const container = document.getElementById('detailsGroup');
+            details.forEach((detail, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn';
+                btn.textContent = detail.name;
+                btn.addEventListener('click', () => {
+                    if (btn.classList.contains('selected')) {
+                        btn.classList.remove('selected');
+                        selectedDetails.delete(detail);
+                    } else {
+                        btn.classList.add('selected');
+                        selectedDetails.add(detail);
+                    }
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function generatePrompt() {
+            if (!selectedStyle) {
+                alert('請先選擇圖片風格');
+                return;
+            }
+
+            let prompt = `${intros[currentGender]}
+
+風格：
+${selectedStyle.prompt}
+
+`;
+
+            if (selectedCostume) {
+                prompt += `服裝：
+${selectedCostume.desc}
+
+`;
+            }
+
+            if (selectedScene) {
+                prompt += `場景：
+${selectedScene.desc}
+
+`;
+            }
+
+            if (selectedLighting) {
+                prompt += `光影：
+${selectedLighting.prompt}
+
+`;
+            }
+
+            if (selectedDetails.size > 0) {
+                prompt += `細節：\n`;
+                selectedDetails.forEach(detail => {
+                    prompt += `${detail.prompt}、`;
+                });
+                prompt = prompt.slice(0, -1) + '\n\n';
+            }
+
+            prompt += `高品質、電影級構圖、8K、高解析度、細緻布料紋理、真實光影。`;
+
+            document.getElementById('promptOutput').textContent = prompt;
+        }
+
+        // 生成和複製功能
+        document.getElementById('generateBtn').addEventListener('click', generatePrompt);
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = document.getElementById('promptOutput').textContent;
+            if (text.includes('請先選擇') || text.includes('按「生成」')) {
+                alert('請先生成提示詞');
+                return;
+            }
+            navigator.clipboard.writeText(text).then(() => {
+                const feedback = document.getElementById('copyFeedback');
+                feedback.style.display = 'block';
+                setTimeout(() => {
+                    feedback.style.display = 'none';
+                }, 2000);
+            });
+        });
+
+        // 切換女生 / 男生
+        function setGender(g) {
+            currentGender = g;
+            styles = g === 'male' ? styles_m : styles_f;
+            costumes = g === 'male' ? costumes_m : costumes_f;
+            scenes = g === 'male' ? scenes_m : scenes_f;
+            details = g === 'male' ? details_m : details_f;
+
+            selectedStyle = null;
+            selectedCostume = null;
+            selectedLighting = null;
+            selectedScene = null;
+            selectedDetails = new Set();
+
+            document.querySelectorAll('.button-row').forEach(el => { el.innerHTML = ''; });
+            document.querySelectorAll('.selected-display').forEach(el => { el.textContent = ''; });
+            document.getElementById('promptOutput').textContent = '請先選擇左邊的風格與配置，然後按「生成」按鈕';
+            document.getElementById('copyFeedback').style.display = 'none';
+
+            document.querySelectorAll('.gender-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.gender === g);
+            });
+
+            createStyleButtons();
+            createCostumeButtons();
+            createSceneButtons();
+            createLightingButtons();
+            createDetailsCheckboxes();
+
+            const left = document.querySelector('.left-panel');
+            if (left) left.scrollTop = 0;
+        }
+
+        document.querySelectorAll('.gender-btn').forEach(b => {
+            b.addEventListener('click', () => setGender(b.dataset.gender));
+        });
+
+        // 初始化（預設女生版）
+        setGender('female');
+    </script>
+</body>
+</html>
